@@ -8,25 +8,35 @@ use diesel::{
     r2d2::{ConnectionManager, Pool},
     PgConnection
 };
+use actix_session::config::PersistentSession;
+use actix_session::{SessionMiddleware, storage::CookieSessionStore};
+use actix_web::cookie::time::Duration;
+use actix_web::cookie::Key;
 use dotenv::dotenv;
 use std::env;
+use env_logger;
 
-
+mod db;
 mod services;
-mod db_utils;
-mod messages;
-mod actors;
-mod db_models;
-mod schema;
-mod insertables;
+mod sessions;
 
-use db_utils::{get_pool, AppState, DbActor};
-use services::{create_user, echo, get_users, hello, manual_hello};
+use crate::db::actors;
+use crate::db::insertables;
+use crate::db::messages;
+use crate::db::models;
+use crate::db::schema;
+use crate::db::utils;
+use crate::sessions::session;
+
+use utils::{get_pool, AppState, DbActor};
+use services::{get_users, create_user, log_in, log_out};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
     env_logger::init();
+    
+    
 
     let db_url: String = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let pool: Pool<ConnectionManager<PgConnection>> = get_pool(&db_url);
@@ -34,18 +44,24 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || {
         App::new()
+            .wrap(Logger::default())
+            .wrap(
+                // create cookie based session middleware
+                SessionMiddleware::builder(CookieSessionStore::default(), Key::from(&[0; 64]))
+                    .session_lifecycle(PersistentSession::default().session_ttl(Duration::minutes(30)))
+                    .cookie_secure(false)
+                    .build()
+            )
             .app_data(Data::new(AppState{db: db_addr.clone()}))
             .wrap(Cors::default()
-                .allowed_origin("http://127.0.0.1:8081") 
-                .allowed_methods(vec!["GET", "POST"])    
-                .allowed_header(header::CONTENT_TYPE)    
+                .allowed_origin("http://192.168.56.1:8081") 
+                .allowed_methods(vec!["GET", "POST"])
+                .allowed_header(header::CONTENT_TYPE)
                 .max_age(3600))  
-            .wrap(Logger::default())
-            .service(hello)
-            .service(echo)
             .service(get_users)
             .service(create_user)
-            .route("/hey", web::get().to(manual_hello))
+            .service(log_in)
+            .service(log_out)
     })
     .bind(("127.0.0.1", 8080))?
     .run()

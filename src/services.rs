@@ -1,19 +1,21 @@
+use actix_session::Session;
 use actix_web::{
-    get, post,
+    get, post, delete, put,
     web::{Data, Json, Path},
     Responder,
     HttpResponse
 };
 use serde::Deserialize;
 use crate::{
-    messages::{CreateUser, FetchUser},
-    AppState, DbActor
+    messages::{CreateUser, FetchUser, LogIn},
+    AppState, DbActor,
+    session,
 };
 use actix::Addr;
+use log::info;
 
-#[derive(Deserialize)]
+#[derive(Deserialize,Debug)]
 pub struct CreateUserBody{
-    pub id: i32,
     pub first_name: String,
     pub last_name: String,
     pub email: String,
@@ -21,12 +23,6 @@ pub struct CreateUserBody{
     pub password: String,
 }
 
-
-
-#[get("/")]
-pub async fn hello() -> impl Responder {
-    HttpResponse::Ok().body("Hello world!")
-}
 
 #[get("/users")]
 pub async fn get_users(state: Data<AppState>) -> impl Responder{
@@ -39,20 +35,11 @@ pub async fn get_users(state: Data<AppState>) -> impl Responder{
     }
 }
 
-#[post("/echo")]
-pub async fn echo(req_body: String) -> impl Responder {
-    HttpResponse::Ok().body(req_body)
-}
-
-pub async fn manual_hello() -> impl Responder {
-    HttpResponse::Ok().body("Hey there!")
-}
-
-#[post("/users")]
+#[post("/user")]
 pub async fn create_user(state: Data<AppState>, body: Json<CreateUserBody>) -> impl Responder{
     let db: Addr<DbActor> = state.as_ref().db.clone();
+    info!("Post User Body: {:?}",body);
     match db.send(CreateUser{
-        id: body.id,
         first_name: body.first_name.to_string(),
         last_name: body.last_name.to_string(),
         email: body.email.to_string(),
@@ -62,5 +49,33 @@ pub async fn create_user(state: Data<AppState>, body: Json<CreateUserBody>) -> i
     {
         Ok(Ok(info)) => HttpResponse::Ok().json(info),
         _ => HttpResponse::InternalServerError().json("Failed to create User"),
+    }
+}
+
+#[post("/log_in")]
+pub async fn log_in(state: Data<AppState>, body:Json<LogIn>, session: Session) -> impl Responder{
+    let db: Addr<DbActor> = state.as_ref().db.clone();
+    match db.send(body.clone()).await {
+        Ok(Ok(true)) => {
+            match session::log_in(session){
+                Ok(response) => response,
+                Err(_error) => HttpResponse::InternalServerError().json("Failed to Log in"),
+            }
+        }
+        _            => HttpResponse::InternalServerError().json("failed to Log in"),
+    }
+}
+
+#[delete("/log_out")]
+pub async fn log_out(session: Session) -> impl Responder{   
+    match session::is_logged_in(&session){
+        Ok(true) =>{
+            match session::log_out(session){
+                Ok(response) => response,
+                Err(_error) => HttpResponse::InternalServerError().json("Failed to Log in"),
+       }
+       }
+        Ok(false) => HttpResponse::BadRequest().json("your are not loged in"),
+        Err(_error) => HttpResponse::InternalServerError().json("Failed to Log out")
     }
 }
