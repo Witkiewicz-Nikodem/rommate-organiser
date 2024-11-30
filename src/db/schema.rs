@@ -15,6 +15,7 @@ diesel::table! {
         id -> Int4,
         #[max_length = 255]
         name -> Varchar,
+        owner -> Int4,
     }
 }
 
@@ -43,6 +44,7 @@ diesel::table! {
 }
 
 diesel::joinable!(expenses -> user_group (user_group_id));
+diesel::joinable!(group -> user (owner));
 diesel::joinable!(user_group -> group (group_id));
 diesel::joinable!(user_group -> user (user_id));
 

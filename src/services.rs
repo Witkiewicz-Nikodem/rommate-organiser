@@ -1,27 +1,14 @@
 use actix_session::Session;
 use actix_web::{
-    get, post, delete, put,
-    web::{Data, Json, Path},
+    get, post, delete, web::{Data, Json},
     Responder,
     HttpResponse
 };
-use serde::Deserialize;
 use crate::{
-    messages::{CreateUser, FetchUser, LogIn},
-    AppState, DbActor,
-    session,
+    db::messages::{CreateGroup, GetGroup, GetUserId}, io_api_schemes::{CreateGroupBody, CreateUserBody}, messages::{CreateUser, FetchUser, LogIn}, session, sessions, AppState, DbActor
 };
 use actix::Addr;
 use log::info;
-
-#[derive(Deserialize,Debug)]
-pub struct CreateUserBody{
-    pub first_name: String,
-    pub last_name: String,
-    pub email: String,
-    pub username: String,
-    pub password: String,
-}
 
 
 #[get("/users")]
@@ -29,11 +16,29 @@ pub async fn get_users(state: Data<AppState>) -> impl Responder{
     let db: Addr<DbActor> = state.as_ref().db.clone();
 
     match db.send(FetchUser).await{
-        Ok(Ok(info)) => HttpResponse::Ok().json(info),
+        Ok(Ok(response)) => HttpResponse::Ok().json(response),
         Ok(Err(_)) => HttpResponse::NotFound().json("No users found"),
         _ => HttpResponse::InternalServerError().json("Unable to retrieve users"),
     }
 }
+
+
+#[get("/groups")]
+pub async fn get_groups(state: Data<AppState>, session: Session) -> impl Responder{
+    let db: Addr<DbActor> = state.as_ref().db.clone();
+
+    match session::get_id(&session) {
+        Some(user_id) =>{
+            match db.send(GetGroup{user_id}).await{
+                Ok(Ok(response)) => HttpResponse::Ok().json(response),
+                Ok(Err(_)) => HttpResponse::NotFound().json("No groups found"),
+                _ => HttpResponse::InternalServerError().json("Unable to retrieve users"),
+            }
+        }
+        None          => HttpResponse::InternalServerError().json("u must be logged in to get yours groups")
+    }
+}
+
 
 #[post("/user")]
 pub async fn create_user(state: Data<AppState>, body: Json<CreateUserBody>) -> impl Responder{
@@ -47,22 +52,51 @@ pub async fn create_user(state: Data<AppState>, body: Json<CreateUserBody>) -> i
         password: body.password.to_string(),
     }).await
     {
-        Ok(Ok(info)) => HttpResponse::Ok().json(info),
-        _ => HttpResponse::InternalServerError().json("Failed to create User"),
+        Ok(Ok(_)) => HttpResponse::Ok(),
+        _ => HttpResponse::InternalServerError(),
     }
 }
+
+#[post("/group")]
+pub async fn create_group(state: Data<AppState>, body: Json<CreateGroupBody>, session: Session) -> impl Responder{
+    let db: Addr<DbActor> = state.as_ref().db.clone();
+    info!("Post User Body: {:?}",body);
+    
+    match session::get_id(&session) {
+        Some(user_id) =>{
+            match db.send(CreateGroup{
+                name: body.name.to_string(),
+                owner: user_id,
+            }).await
+            {
+                Ok(Ok(_)) => HttpResponse::Ok().finish(),
+                err => {info!("create group error: {:?}",err);HttpResponse::InternalServerError().finish()},
+            }
+        }
+        None          => HttpResponse::InternalServerError().json("u must be logged in to create Group")
+    }
+}
+
 
 #[post("/log_in")]
 pub async fn log_in(state: Data<AppState>, body:Json<LogIn>, session: Session) -> impl Responder{
     let db: Addr<DbActor> = state.as_ref().db.clone();
     match db.send(body.clone()).await {
         Ok(Ok(true)) => {
-            match session::log_in(session){
-                Ok(response) => response,
-                Err(_error) => HttpResponse::InternalServerError().json("Failed to Log in"),
+            let user_id = match db.send(GetUserId{username: body.username.clone()}).await{
+                Ok(Ok(id)) => id,
+                Err(e) => {
+                    info!("function Log_in -> couldn't read userId from result GetUserId, error: {:?}", e);
+                    return HttpResponse::InternalServerError()
+                },    
+                _      => return HttpResponse::InternalServerError()
+            };         
+            match session::log_in(session, user_id){
+                Ok(_)       => HttpResponse::Ok(),
+                Err(_error) => HttpResponse::InternalServerError(),
             }
         }
-        _            => HttpResponse::InternalServerError().json("failed to Log in"),
+        _            => HttpResponse::InternalServerError(),
     }
 }
 
@@ -79,3 +113,4 @@ pub async fn log_out(session: Session) -> impl Responder{
         Err(_error) => HttpResponse::InternalServerError().json("Failed to Log out")
     }
 }
+

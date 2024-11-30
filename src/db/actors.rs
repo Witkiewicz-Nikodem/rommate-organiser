@@ -1,11 +1,12 @@
 use super::models::User;
+use super::schema::group::dsl::{group,id as group_id};
+use super::schema::group::{name, owner};
 use super::utils::DbActor;
-use super::insertables::NewUser;
-use super::schema::user::{dsl::*, id as user_id};
-use super::messages::{FetchUser, CreateUser, LogIn};
+use super::insertables::{NewGroup, NewUser};
+use super::schema::user::{dsl::{user,first_name,last_name,email,password,username}, id as user_id};
+use super::messages::{CreateGroup, CreateUser, FetchUser, GetGroup, GetUserId, LogIn};
 use actix::Handler;
 use diesel::{self, prelude::*, dsl::exists};
-use log::info;
 
 impl Handler<FetchUser> for DbActor{
     type Result = QueryResult<Vec<User>>;
@@ -17,9 +18,9 @@ impl Handler<FetchUser> for DbActor{
 }
 
 impl Handler<CreateUser> for DbActor{
-    type Result = QueryResult<User>;
+    type Result = QueryResult<usize>;
 
-    fn handle(&mut self, msg: CreateUser, ctx: &mut Self::Context) -> Self::Result {
+    fn handle(&mut self, msg: CreateUser, _ctx: &mut Self::Context) -> Self::Result {
         let mut conn = self.0.get().expect("Create User: Unable to establish connection");
 
         let new_user = NewUser{
@@ -40,7 +41,7 @@ impl Handler<CreateUser> for DbActor{
                 username,
                 password,
             ))
-            .get_result::<User>(&mut conn)
+            .execute(&mut conn)
     }
 }
 
@@ -55,3 +56,35 @@ impl Handler<LogIn> for DbActor{
         )).get_result::<bool>(&mut conn)
     }
 }
+
+impl Handler<CreateGroup> for DbActor{
+    type Result = QueryResult<usize>;
+
+    fn handle(&mut self, msg: CreateGroup, _ctx: &mut Self::Context) -> Self::Result {
+        let mut conn = self.0.get().expect("Create User: Unable to establish connection");
+        let new_group = NewGroup{
+            name: msg.name,
+            owner: msg.owner,
+        };
+        diesel::insert_into(group).values(new_group).execute(&mut conn)
+    }
+}
+
+impl Handler<GetUserId> for DbActor{
+    type Result = QueryResult<i32>;
+
+    fn handle(&mut self, msg: GetUserId, _ctx: &mut Self::Context) -> Self::Result{
+        let mut conn = self.0.get().expect("Create User: Unable to establish connection");
+        user.filter(username.eq(msg.username)).select(user_id).first::<i32>(&mut conn)
+    }
+}
+
+impl Handler<GetGroup> for DbActor{
+    type Result = QueryResult<Vec<String>>;
+
+    fn handle(&mut self, msg: GetGroup, _ctx: &mut Self::Context) -> Self::Result{
+        let mut conn = self.0.get().expect("Create User: Unable to establish connection");
+        group.filter(owner.eq(msg.user_id)).select(name).get_results(&mut conn)
+    }
+}
+

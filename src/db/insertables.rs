@@ -1,4 +1,4 @@
-use crate::schema::user;
+use crate::{db::schema::group, schema::user};
 use diesel::Insertable;
 use serde::Serialize;
 
@@ -10,4 +10,12 @@ pub struct NewUser{
     pub email: String,
     pub username: String,
     pub password: String,
+}
+
+
+#[derive(Insertable, Serialize,Clone)]
+#[diesel(table_name=group)]
+pub struct NewGroup{
+    pub name: String,
+    pub owner: i32, 
 }
