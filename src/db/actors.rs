@@ -1,5 +1,5 @@
 use super::models::User;
-use super::schema::group::dsl::{group,id as group_id};
+use super::schema::group::dsl::group;
 use super::schema::group::{name, owner};
 use super::utils::DbActor;
 use super::insertables::{NewGroup, NewUser};

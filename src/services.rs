@@ -5,7 +5,7 @@ use actix_web::{
     HttpResponse
 };
 use crate::{
-    db::messages::{CreateGroup, GetGroup, GetUserId}, io_api_schemes::{CreateGroupBody, CreateUserBody}, messages::{CreateUser, FetchUser, LogIn}, session, sessions, AppState, DbActor
+    db::messages::{CreateGroup, GetGroup, GetUserId}, io_api_schemes::{CreateGroupBody, CreateUserBody}, messages::{CreateUser, FetchUser, LogIn}, session, AppState, DbActor
 };
 use actix::Addr;
 use log::info;
