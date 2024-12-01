@@ -10,7 +10,13 @@ pub struct FetchUser;
 
 #[derive(Message)]
 #[rtype(result= "QueryResult<Vec<String>>")]
-pub struct GetGroupName{
+pub struct GetMyGroupName{
+    pub user_id: i32,
+}
+
+#[derive(Message)]
+#[rtype(result= "QueryResult<Vec<String>>")]
+pub struct GetBelongingGroupsName{
     pub user_id: i32,
 }
 

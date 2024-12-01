@@ -1,17 +1,17 @@
-use super::models::{Expenses, User};
+use super::models::User;
 use super::schema::expenses::dsl::expenses;
 use super::schema::expenses::{cost, name as expense_name};
 use super::schema::user_group::dsl::{user_group};
 use super::schema::group::dsl::group;
-use super::schema::group::{name as group_name, owner, id as group_id};
+use super::schema::group::{name as group_name, owner};
+use super::schema::user_group::user_id as user_in_group_id;
 use super::utils::DbActor;
 use super::insertables::{NewGroup, NewUser};
 use super::schema::user::{dsl::{user,first_name,last_name,email,password,username}, id as user_id};
-use super::messages::{CreateGroup, CreateUser, FetchUser, GetGroupExpenses, GetGroupName, GetUserId, LogIn};
+use super::messages::{CreateGroup, CreateUser, FetchUser, GetBelongingGroupsName, GetGroupExpenses, GetMyGroupName, GetUserId, LogIn};
 use actix::Handler;
 use bigdecimal::BigDecimal;
 use diesel::{self, prelude::*, dsl::exists};
-use log::info;
 
 impl Handler<FetchUser> for DbActor{
     type Result = QueryResult<Vec<User>>;
@@ -84,12 +84,24 @@ impl Handler<GetUserId> for DbActor{
     }
 }
 
-impl Handler<GetGroupName> for DbActor{
+impl Handler<GetMyGroupName> for DbActor{
     type Result = QueryResult<Vec<String>>;
 
-    fn handle(&mut self, msg: GetGroupName, _ctx: &mut Self::Context) -> Self::Result{
+    fn handle(&mut self, msg: GetMyGroupName, _ctx: &mut Self::Context) -> Self::Result{
         let mut conn = self.0.get().expect("Create User: Unable to establish connection");
         group.filter(owner.eq(msg.user_id)).select(group_name).get_results(&mut conn)
+    }
+}
+
+impl Handler<GetBelongingGroupsName> for DbActor{
+    type Result = QueryResult<Vec<String>>;
+
+    fn handle(&mut self, msg: GetBelongingGroupsName, _ctx: &mut Self::Context) -> Self::Result{
+        let mut conn = self.0.get().expect("Create User: Unable to establish connection");
+        group.inner_join(user_group)
+             .filter(user_in_group_id.eq(msg.user_id))
+             .select(group_name)
+             .get_results(&mut conn)
     }
 }
 

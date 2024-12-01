@@ -3,7 +3,7 @@ use actix_web::{
     delete, get, post, web::{self, Data, Json}, HttpResponse, Responder
 };
 use crate::{
-    db::messages::{CreateGroup, GetGroupExpenses, GetGroupName, GetUserId}, io_api_schemes::{CreateGroupBody, CreateUserBody}, messages::{CreateUser, FetchUser, LogIn}, session, AppState, DbActor
+    db::messages::{CreateGroup, GetBelongingGroupsName, GetGroupExpenses, GetMyGroupName, GetUserId}, io_api_schemes::{CreateGroupBody, CreateUserBody}, messages::{CreateUser, FetchUser, LogIn}, session, AppState, DbActor
 };
 use actix::Addr;
 use log::info;
@@ -37,13 +37,29 @@ pub async fn get_groups_expenses(state: Data<AppState>, session: Session, name: 
     }
 }
 
-#[get("/groups")]
-pub async fn get_groups(state: Data<AppState>, session: Session) -> impl Responder{
+#[get("/my/groups")]
+pub async fn get_my_groups(state: Data<AppState>, session: Session) -> impl Responder{
     let db: Addr<DbActor> = state.as_ref().db.clone();
 
     match session::get_id(&session) {
         Some(user_id) =>{
-            match db.send(GetGroupName{user_id}).await{
+            match db.send(GetMyGroupName{user_id}).await{
+                Ok(Ok(response)) => HttpResponse::Ok().json(response),
+                Ok(Err(_)) => HttpResponse::NotFound().json("No groups found"),
+                _ => HttpResponse::InternalServerError().json("Unable to retrieve users"),
+            }
+        }
+        None          => HttpResponse::InternalServerError().json("u must be logged in to get yours groups")
+    }
+}
+
+#[get("belonging/groups")]
+pub async fn get_belonging_groups(state: Data<AppState>, session: Session) -> impl Responder{
+    let db: Addr<DbActor> = state.as_ref().db.clone();
+
+    match session::get_id(&session) {
+        Some(user_id) =>{
+            match db.send(GetBelongingGroupsName{user_id}).await{
                 Ok(Ok(response)) => HttpResponse::Ok().json(response),
                 Ok(Err(_)) => HttpResponse::NotFound().json("No groups found"),
                 _ => HttpResponse::InternalServerError().json("Unable to retrieve users"),
