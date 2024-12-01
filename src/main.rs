@@ -28,14 +28,12 @@ use crate::db::utils;
 use crate::sessions::session;
 
 use utils::{get_pool, AppState, DbActor};
-use services::{create_group, create_user, get_groups, get_users, log_in, log_out};
+use services::{create_group, create_user, get_groups, get_groups_expenses, get_users, log_in, log_out};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
     env_logger::init();
-    
-    
 
     let db_url: String = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let pool: Pool<ConnectionManager<PgConnection>> = get_pool(&db_url);
@@ -66,6 +64,7 @@ async fn main() -> std::io::Result<()> {
             .service(log_out)
             .service(create_group)
             .service(get_groups)
+            .service(get_groups_expenses)
             .service(actix_files::Files::new(
                 "/static",
                 Path::new("../static")

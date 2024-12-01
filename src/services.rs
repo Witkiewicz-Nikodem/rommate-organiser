@@ -1,11 +1,9 @@
 use actix_session::Session;
 use actix_web::{
-    get, post, delete, web::{Data, Json},
-    Responder,
-    HttpResponse
+    delete, get, post, web::{self, Data, Json}, HttpResponse, Responder
 };
 use crate::{
-    db::messages::{CreateGroup, GetGroup, GetUserId}, io_api_schemes::{CreateGroupBody, CreateUserBody}, messages::{CreateUser, FetchUser, LogIn}, session, AppState, DbActor
+    db::messages::{CreateGroup, GetGroupExpenses, GetGroupName, GetUserId}, io_api_schemes::{CreateGroupBody, CreateUserBody}, messages::{CreateUser, FetchUser, LogIn}, session, AppState, DbActor
 };
 use actix::Addr;
 use log::info;
@@ -23,13 +21,29 @@ pub async fn get_users(state: Data<AppState>) -> impl Responder{
 }
 
 
+#[get("/expenses/{name}")]
+pub async fn get_groups_expenses(state: Data<AppState>, session: Session, name: web::Path<String>) -> impl Responder{
+    let db: Addr<DbActor> = state.as_ref().db.clone();
+
+    match session::is_logged_in(&session){
+        true => {
+            match db.send(GetGroupExpenses{group_name: name.to_string()}).await{
+                Ok(Ok(response)) => HttpResponse::Ok().json(response),
+                Ok(Err(_)) => HttpResponse::NotFound().json("No users found"),
+                _ => HttpResponse::InternalServerError().json("Unable to retrieve users"),
+            }
+        }
+        false => HttpResponse::InternalServerError().json("u must be logged in to get yours groups")
+    }
+}
+
 #[get("/groups")]
 pub async fn get_groups(state: Data<AppState>, session: Session) -> impl Responder{
     let db: Addr<DbActor> = state.as_ref().db.clone();
 
     match session::get_id(&session) {
         Some(user_id) =>{
-            match db.send(GetGroup{user_id}).await{
+            match db.send(GetGroupName{user_id}).await{
                 Ok(Ok(response)) => HttpResponse::Ok().json(response),
                 Ok(Err(_)) => HttpResponse::NotFound().json("No groups found"),
                 _ => HttpResponse::InternalServerError().json("Unable to retrieve users"),
@@ -60,8 +74,6 @@ pub async fn create_user(state: Data<AppState>, body: Json<CreateUserBody>) -> i
 #[post("/group")]
 pub async fn create_group(state: Data<AppState>, body: Json<CreateGroupBody>, session: Session) -> impl Responder{
     let db: Addr<DbActor> = state.as_ref().db.clone();
-    info!("Post User Body: {:?}",body);
-    
     match session::get_id(&session) {
         Some(user_id) =>{
             match db.send(CreateGroup{
@@ -103,14 +115,15 @@ pub async fn log_in(state: Data<AppState>, body:Json<LogIn>, session: Session) -
 #[delete("/log_out")]
 pub async fn log_out(session: Session) -> impl Responder{   
     match session::is_logged_in(&session){
-        Ok(true) =>{
+        true =>{
             match session::log_out(session){
                 Ok(response) => response,
                 Err(_error) => HttpResponse::InternalServerError().json("Failed to Log in"),
-       }
-       }
-        Ok(false) => HttpResponse::BadRequest().json("your are not loged in"),
-        Err(_error) => HttpResponse::InternalServerError().json("Failed to Log out")
+            }
+        }
+        false => HttpResponse::BadRequest().json("your are not loged in"),
     }
 }
+
+
 

@@ -2,6 +2,7 @@ use super::models::User;
 use actix::Message;
 use diesel::QueryResult;
 use serde::Deserialize;
+use bigdecimal::BigDecimal;
 
 #[derive(Message)]
 #[rtype(result = "QueryResult<Vec<User>>")]
@@ -9,8 +10,14 @@ pub struct FetchUser;
 
 #[derive(Message)]
 #[rtype(result= "QueryResult<Vec<String>>")]
-pub struct GetGroup{
+pub struct GetGroupName{
     pub user_id: i32,
+}
+
+#[derive(Message)]
+#[rtype(result= "QueryResult<Vec<(String,String,BigDecimal)>>")]
+pub struct GetGroupExpenses{
+    pub group_name: String,
 }
 
 

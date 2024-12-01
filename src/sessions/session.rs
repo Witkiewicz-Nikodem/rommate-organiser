@@ -18,13 +18,13 @@ pub fn log_out(session: Session) -> Result<HttpResponse, Error>{
     }
 }
 
-pub fn is_logged_in(session: &Session) -> Result<bool,Error>{
-    if let Some(user_id) = session.get::<i32>("user_id")?{
+pub fn is_logged_in(session: &Session) -> bool{
+    if let Ok(Some(user_id)) = session.get::<i32>("user_id"){
         info!("is_logged_in: {:?} ", user_id);
-        Ok(true)
+        true
     }
     else {
-        Ok(false)
+        false
     }
 }
 
