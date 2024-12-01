@@ -1,8 +1,9 @@
-use super::models::User;
+use super::models::{User, Group};
 use actix::Message;
 use diesel::QueryResult;
 use serde::Deserialize;
 use bigdecimal::BigDecimal;
+use uuid::Uuid;
 
 #[derive(Message)]
 #[rtype(result = "QueryResult<Vec<User>>")]
@@ -36,6 +37,26 @@ pub struct CreateUser{
 pub struct CreateGroup{
     pub name: String,
     pub owner: i32,
+}
+
+#[derive(Message)]
+#[rtype(result= "QueryResult<Uuid>")]
+pub struct GetJoinCode{
+    pub group_name: String,
+}
+
+#[derive(Message)]
+#[rtype(result= "bool")]
+pub struct IsUserGroupOwner{
+    pub group_name: String,
+    pub usr_id: i32
+}
+
+#[derive(Message,Deserialize)]
+#[rtype(result= "QueryResult<usize>")]
+pub struct JoinGroup{
+    pub code: Uuid,
+    pub user_id: i32,
 }
 
 #[derive(Message, Deserialize, Clone)]

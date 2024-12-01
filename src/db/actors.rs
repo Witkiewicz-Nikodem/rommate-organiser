@@ -1,18 +1,19 @@
-use super::models::{Expenses, ModUpdateExpense, User};
+use super::models::{Expenses, ModUpdateExpense, User, Group};
 use super::schema::expenses::dsl::expenses;
 use super::schema::expenses::{cost, name as expense_name, id as expense_id};
 use super::schema::user_group::dsl::{user_group};
 use super::schema::group::dsl::group;
-use super::schema::group::{name as group_name, owner, id as group_id};
+use super::schema::group::{id as group_id, join_code, name as group_name, owner};
 use super::schema::user_group::{group_id as group_in_group_id, user_id as user_in_group_id, user_group_id};
 use super::utils::DbActor;
-use super::insertables::{NewExpense, NewGroup, NewUser};
+use super::insertables::{NewExpense, NewGroup, NewUser, NewUserGroup};
 use super::schema::user::{dsl::{user,first_name,last_name,email,password,username}, id as user_id};
-use super::messages::{CreateGroup, CreateUser, DeleteExpense, FetchUser, GetBelongingGroupsName, GetGroupExpenses, GetMyExpenses, GetMyGroupName, GetSummedGroupExpenses, GetUserId, InsertExpense, LogIn, UpdateExpense};
+use super::messages::{CreateGroup, CreateUser, DeleteExpense, FetchUser, GetBelongingGroupsName, GetGroupExpenses, GetJoinCode, GetMyExpenses, GetMyGroupName, GetSummedGroupExpenses, GetUserId, InsertExpense, IsUserGroupOwner, JoinGroup, LogIn, UpdateExpense};
 use actix::Handler;
 use bigdecimal::BigDecimal;
 use diesel::dsl::sum;
 use diesel::{self, prelude::*, dsl::exists};
+use uuid::Uuid;
 
 impl Handler<FetchUser> for DbActor{
     type Result = QueryResult<Vec<User>>;
@@ -69,10 +70,18 @@ impl Handler<CreateGroup> for DbActor{
     fn handle(&mut self, msg: CreateGroup, _ctx: &mut Self::Context) -> Self::Result {
         let mut conn = self.0.get().expect("Create User: Unable to establish connection");
         let new_group = NewGroup{
-            name: msg.name,
+            name: msg.name.clone(),
             owner: msg.owner,
+            join_code: Uuid::new_v4(),
         };
-        diesel::insert_into(group).values(new_group).execute(&mut conn)
+        diesel::insert_into(group).values(new_group).execute(&mut conn).expect("coudln't insert group");
+        let grop_id = group.filter(group_name.eq(msg.name)).select(group_id).first::<i32>(&mut conn).expect("coudln't get new group from group table");
+        
+        let new_user_group = NewUserGroup{
+            user_id: msg.owner,
+            group_id: grop_id 
+        };
+        diesel::insert_into(user_group).values(new_user_group).execute(&mut conn)
     }
 }
 
@@ -106,6 +115,34 @@ impl Handler<GetBelongingGroupsName> for DbActor{
     }
 }
 
+impl Handler<GetJoinCode> for DbActor{
+    type Result = QueryResult<Uuid>;
+
+    fn handle(&mut self, msg: GetJoinCode, _ctx: &mut Self::Context) -> Self::Result{
+        let mut conn = self.0.get().expect("Create User: Unable to establish connection");
+        let grop_id: i32 = group.filter(group_name.eq(msg.group_name)).select(group_id).first(&mut conn).expect("Insert Expense: couldn't find group");
+        
+        group.filter(group_id.eq(grop_id))
+             .select(join_code)
+             .get_result(&mut conn)
+    }
+}
+
+impl Handler<JoinGroup> for DbActor{
+    type Result = QueryResult<usize>;
+
+    fn handle(&mut self, msg: JoinGroup, _ctx: &mut Self::Context) -> Self::Result{
+        let mut conn = self.0.get().expect("Create User: Unable to establish connection");
+        let grop_id: i32 = group.filter(join_code.eq(msg.code)).select(group_id).first(&mut conn).expect("Insert Expense: couldn't find group");
+        
+        let new_user_group = NewUserGroup{
+            user_id: msg.user_id,
+            group_id: grop_id,
+        };
+
+        diesel::insert_into(user_group).values(new_user_group).execute(&mut conn)
+    }
+}
 
 // Expenses
 
@@ -196,5 +233,21 @@ impl Handler<DeleteExpense> for DbActor{
         
         diesel::delete(expenses.filter(expense_id.eq(msg.expense_id)))
             .execute(&mut conn)
+    }
+}
+
+impl Handler<IsUserGroupOwner> for DbActor{
+    type Result = bool;
+    fn handle(&mut self, msg: IsUserGroupOwner, _ctx: &mut Self::Context) -> Self::Result{
+        let mut conn = self.0.get().expect("Create User: Unable to establish connection");      
+        let grop_id: i32 = group.filter(group_name.eq(msg.group_name)).select(group_id).first(&mut conn).expect("Insert Expense: couldn't find group");
+
+        match group.filter(owner.eq(msg.usr_id))
+        .filter(group_id.eq(grop_id))
+        .select(group_id)
+        .get_result::<i32>(&mut conn){
+            Ok(_) => true,
+            Err(_) => false,
+        }
     }
 }

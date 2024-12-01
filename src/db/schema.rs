@@ -16,6 +16,7 @@ diesel::table! {
         #[max_length = 255]
         name -> Varchar,
         owner -> Int4,
+        join_code -> Uuid,
     }
 }
 

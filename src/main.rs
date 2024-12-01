@@ -28,7 +28,7 @@ use crate::db::utils;
 use crate::sessions::session;
 
 use utils::{get_pool, AppState, DbActor};
-use services::{create_group, create_user, delete_expense, get_belonging_groups, get_groups_expenses, get_my_expenses, get_my_groups, get_summed_groups_expenses, get_users, insert_expense, log_in, log_out, update_expense};
+use services::{create_group, create_user, delete_expense, get_belonging_groups, get_groups_expenses, get_join_code, get_my_expenses, get_my_groups, get_summed_groups_expenses, get_users, insert_expense, log_in, log_out, post_join_group, update_expense};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -71,6 +71,8 @@ async fn main() -> std::io::Result<()> {
             .service(insert_expense)
             .service(update_expense)
             .service(delete_expense)
+            .service(get_join_code)
+            .service(post_join_group)
             .service(actix_files::Files::new(
                 "/static",
                 Path::new("../static")

@@ -1,7 +1,8 @@
-use crate::{db::schema::group, schema::user, schema::expenses};
-use bigdecimal::{num_bigint::BigInt, BigDecimal};
+use crate::{db::schema::{group, user_group}, schema::{expenses, user}};
+use bigdecimal:: BigDecimal;
 use diesel::Insertable;
 use serde::Serialize;
+use uuid::Uuid;
 
 #[derive(Insertable, Serialize,Clone)]
 #[diesel(table_name=user)]
@@ -19,6 +20,14 @@ pub struct NewUser{
 pub struct NewGroup{
     pub name: String,
     pub owner: i32, 
+    pub join_code: Uuid,
+}
+
+#[derive(Insertable, Serialize,Clone)]
+#[diesel(table_name=user_group)]
+pub struct NewUserGroup{
+    pub user_id: i32, 
+    pub group_id: i32
 }
 
 #[derive(Insertable, Serialize,Clone)]
@@ -28,3 +37,4 @@ pub struct NewExpense{
     pub cost: BigDecimal,
     pub user_group_id: i32,
 }
+

@@ -12,6 +12,7 @@ CREATE TABLE "group" (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) UNIQUE NOT NULL,
     owner INT NOT NULL,
+    join_code UUID NOT NULL,
     FOREIGN KEY (owner) REFERENCES "user"(id) ON DELETE CASCADE
 );
 
@@ -42,13 +43,13 @@ INSERT INTO "user" (first_name, last_name, email, username, password) VALUES
 ('Olivia', 'Taylor', 'olivia.taylor@example.com', 'oliviat', 'password987');
 
 -- Groups (Households)
-INSERT INTO "group" (name, owner) VALUES
-('Apartment E', 5),
-('House F', 6),
-('Condo G', 1),
-('Townhouse H', 4),
-('Penthouse I', 2),
-('Cottage J', 3);
+INSERT INTO "group" (name, owner, join_code) VALUES
+('Apartment E', 5, 'd290f1ee-6c54-4b01-90e6-d701748f0851'),
+('House F', 6, '7c9e6679-7425-40de-944b-e07fc1f90ae7'),
+('Condo G', 1, '550e8400-e29b-41d4-a716-446655440000'),
+('Townhouse H', 4, '123e4567-e89b-12d3-a456-426614174000'),
+('Penthouse I', 2, 'f47ac10b-58cc-4372-a567-0e02b2c3d479'),
+('Cottage J', 3, '3fa85f64-5717-4562-b3fc-2c963f66afa6');
 
 -- User_Group (Roommate-Household associations)
 INSERT INTO "user_group" (user_id, group_id) VALUES
