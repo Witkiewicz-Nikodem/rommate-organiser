@@ -66,4 +66,19 @@ pub struct GetMyExpenses{
     pub user_id: i32,
 }
 
+#[derive(Message, Clone)]
+#[rtype(result= "QueryResult<(usize)>")]
+pub struct InsertExpense{
+    pub group_name: String,
+    pub user_id: i32,
+    pub name: String,
+    pub cost: BigDecimal,
+}
 
+#[derive(Message)]
+#[rtype(result= "QueryResult<(usize)>")]
+pub struct UpdateExpense{
+    pub name: String,
+    pub cost: BigDecimal,
+    pub expense_id: i32
+}
