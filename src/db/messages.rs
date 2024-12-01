@@ -20,12 +20,6 @@ pub struct GetBelongingGroupsName{
     pub user_id: i32,
 }
 
-#[derive(Message)]
-#[rtype(result= "QueryResult<Vec<(String,String,BigDecimal)>>")]
-pub struct GetGroupExpenses{
-    pub group_name: String,
-}
-
 
 #[derive(Message)]
 #[rtype(result= "QueryResult<usize>")]
@@ -56,3 +50,20 @@ pub struct LogIn{
 pub struct GetUserId{
     pub username: String,
 }
+
+
+// Expenses
+
+#[derive(Message)]
+#[rtype(result= "QueryResult<Vec<(String,String,BigDecimal,i32)>>")]
+pub struct GetGroupExpenses{
+    pub group_name: String,
+}
+
+#[derive(Message)]
+#[rtype(result= "QueryResult<Vec<(String,String,BigDecimal,i32)>>")]
+pub struct GetMyExpenses{
+    pub user_id: i32,
+}
+
+

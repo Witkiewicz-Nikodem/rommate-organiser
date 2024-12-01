@@ -3,7 +3,7 @@ use actix_web::{
     delete, get, post, web::{self, Data, Json}, HttpResponse, Responder
 };
 use crate::{
-    db::messages::{CreateGroup, GetBelongingGroupsName, GetGroupExpenses, GetMyGroupName, GetUserId}, io_api_schemes::{CreateGroupBody, CreateUserBody}, messages::{CreateUser, FetchUser, LogIn}, session, AppState, DbActor
+    db::messages::{CreateGroup, GetBelongingGroupsName, GetGroupExpenses, GetMyExpenses, GetMyGroupName, GetUserId}, io_api_schemes::{CreateGroupBody, CreateUserBody}, messages::{CreateUser, FetchUser, LogIn}, session, AppState, DbActor
 };
 use actix::Addr;
 use log::info;
@@ -17,23 +17,6 @@ pub async fn get_users(state: Data<AppState>) -> impl Responder{
         Ok(Ok(response)) => HttpResponse::Ok().json(response),
         Ok(Err(_)) => HttpResponse::NotFound().json("No users found"),
         _ => HttpResponse::InternalServerError().json("Unable to retrieve users"),
-    }
-}
-
-
-#[get("/expenses/{name}")]
-pub async fn get_groups_expenses(state: Data<AppState>, session: Session, name: web::Path<String>) -> impl Responder{
-    let db: Addr<DbActor> = state.as_ref().db.clone();
-
-    match session::is_logged_in(&session){
-        true => {
-            match db.send(GetGroupExpenses{group_name: name.to_string()}).await{
-                Ok(Ok(response)) => HttpResponse::Ok().json(response),
-                Ok(Err(_)) => HttpResponse::NotFound().json("No users found"),
-                _ => HttpResponse::InternalServerError().json("Unable to retrieve users"),
-            }
-        }
-        false => HttpResponse::InternalServerError().json("u must be logged in to get yours groups")
     }
 }
 
@@ -138,6 +121,42 @@ pub async fn log_out(session: Session) -> impl Responder{
             }
         }
         false => HttpResponse::BadRequest().json("your are not loged in"),
+    }
+}
+
+#[get("/expenses/group/{group_name}")]
+pub async fn get_groups_expenses(state: Data<AppState>, session: Session, group_name: web::Path<String>) -> impl Responder{
+    let db: Addr<DbActor> = state.as_ref().db.clone();
+
+    match session::is_logged_in(&session){
+        true => {
+            match db.send(GetGroupExpenses{group_name: group_name.to_string()}).await{
+                Ok(Ok(response)) => HttpResponse::Ok().json(response),
+                Ok(Err(_)) => HttpResponse::NotFound().json("No users found"),
+                _ => HttpResponse::InternalServerError().json("Unable to retrieve users"),
+            }
+        }
+        false => HttpResponse::InternalServerError().json("u must be logged in to get yours groups")
+    }
+}
+
+#[get("/expenses/user/{usr_id}")]
+pub async fn get_my_expenses(state: Data<AppState>, session: Session, path: web::Path<String>) -> impl Responder{
+    let db: Addr<DbActor> = state.as_ref().db.clone();
+    let usr_id: i32 =  match path.into_inner().parse::<i32>(){
+        Ok(id) => id,
+        Err(_) => return HttpResponse::InternalServerError().json("Unable to retrieve user_id from path")
+    };
+
+    match session::is_logged_in(&session){
+        true => {
+            match db.send(GetMyExpenses{user_id: usr_id}).await{
+                Ok(Ok(response)) => HttpResponse::Ok().json(response),
+                Ok(Err(_)) => HttpResponse::NotFound().json("No users found"),
+                _ => HttpResponse::InternalServerError().json("Unable to retrieve users"),
+            }
+        }
+        false => HttpResponse::InternalServerError().json("u must be logged in to get yours groups")
     }
 }
 

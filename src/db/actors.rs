@@ -1,6 +1,6 @@
 use super::models::User;
 use super::schema::expenses::dsl::expenses;
-use super::schema::expenses::{cost, name as expense_name};
+use super::schema::expenses::{cost, name as expense_name, id as expense_id};
 use super::schema::user_group::dsl::{user_group};
 use super::schema::group::dsl::group;
 use super::schema::group::{name as group_name, owner};
@@ -8,7 +8,7 @@ use super::schema::user_group::user_id as user_in_group_id;
 use super::utils::DbActor;
 use super::insertables::{NewGroup, NewUser};
 use super::schema::user::{dsl::{user,first_name,last_name,email,password,username}, id as user_id};
-use super::messages::{CreateGroup, CreateUser, FetchUser, GetBelongingGroupsName, GetGroupExpenses, GetMyGroupName, GetUserId, LogIn};
+use super::messages::{CreateGroup, CreateUser, FetchUser, GetBelongingGroupsName, GetGroupExpenses, GetMyExpenses, GetMyGroupName, GetUserId, LogIn};
 use actix::Handler;
 use bigdecimal::BigDecimal;
 use diesel::{self, prelude::*, dsl::exists};
@@ -106,7 +106,7 @@ impl Handler<GetBelongingGroupsName> for DbActor{
 }
 
 impl Handler<GetGroupExpenses> for DbActor{
-    type Result = QueryResult<Vec<(String,String,BigDecimal)>>;
+    type Result = QueryResult<Vec<(String,String,BigDecimal,i32)>>;
     fn handle(&mut self, msg: GetGroupExpenses, _ctx: &mut Self::Context) -> Self::Result{
         let mut conn = self.0.get().expect("Create User: Unable to establish connection");
 
@@ -114,6 +114,19 @@ impl Handler<GetGroupExpenses> for DbActor{
                     .inner_join(group)
                     .inner_join(user))
                 .filter(group_name.eq(msg.group_name))
-                .select((username,expense_name,cost)).get_results(&mut conn)
+                .select((username,expense_name,cost,expense_id)).get_results(&mut conn)
+    }
+}
+
+impl Handler<GetMyExpenses> for DbActor{
+    type Result = QueryResult<Vec<(String,String,BigDecimal,i32)>>;
+    fn handle(&mut self, msg: GetMyExpenses, _ctx: &mut Self::Context) -> Self::Result{
+        let mut conn = self.0.get().expect("Create User: Unable to establish connection");
+
+        expenses.inner_join(user_group
+                    .inner_join(group)
+                    .inner_join(user))
+                .filter(user_id.eq(msg.user_id))
+                .select((username,expense_name,cost,expense_id)).get_results(&mut conn)
     }
 }
