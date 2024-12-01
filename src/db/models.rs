@@ -4,7 +4,7 @@
 #![allow(clippy::all)]
 
 use bigdecimal::BigDecimal;
-use diesel::prelude::AsChangeset;
+use diesel::prelude::{AsChangeset, QueryableByName};
 use diesel::{Identifiable, Queryable};
 use serde::Serialize;
 use uuid::Uuid;
@@ -18,7 +18,7 @@ use crate::schema::group::dsl::group;
 use crate::schema::user::dsl::user;
 use crate::schema::user_group::dsl::user_group;
 
-#[derive(Queryable, Debug,Serialize, AsChangeset)]
+#[derive(QueryableByName, Debug,Serialize, AsChangeset)]
 #[diesel(table_name = schema::expenses)]
 pub struct Expenses {
     pub id: i32,

@@ -66,6 +66,12 @@ pub struct GetMyExpenses{
     pub user_id: i32,
 }
 
+#[derive(Message)]
+#[rtype(result= "QueryResult<Vec<(String,Option<BigDecimal>)>>")]
+pub struct GetSummedGroupExpenses{
+    pub group_name: String,
+}
+
 #[derive(Message, Clone)]
 #[rtype(result= "QueryResult<(usize)>")]
 pub struct InsertExpense{
@@ -80,5 +86,11 @@ pub struct InsertExpense{
 pub struct UpdateExpense{
     pub name: String,
     pub cost: BigDecimal,
+    pub expense_id: i32
+}
+
+#[derive(Message)]
+#[rtype(result= "QueryResult<(usize)>")]
+pub struct DeleteExpense{
     pub expense_id: i32
 }

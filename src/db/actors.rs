@@ -8,9 +8,10 @@ use super::schema::user_group::{group_id as group_in_group_id, user_id as user_i
 use super::utils::DbActor;
 use super::insertables::{NewExpense, NewGroup, NewUser};
 use super::schema::user::{dsl::{user,first_name,last_name,email,password,username}, id as user_id};
-use super::messages::{CreateGroup, CreateUser, FetchUser, GetBelongingGroupsName, GetGroupExpenses, GetMyExpenses, GetMyGroupName, GetUserId, InsertExpense, LogIn, UpdateExpense};
+use super::messages::{CreateGroup, CreateUser, DeleteExpense, FetchUser, GetBelongingGroupsName, GetGroupExpenses, GetMyExpenses, GetMyGroupName, GetSummedGroupExpenses, GetUserId, InsertExpense, LogIn, UpdateExpense};
 use actix::Handler;
 use bigdecimal::BigDecimal;
+use diesel::dsl::sum;
 use diesel::{self, prelude::*, dsl::exists};
 
 impl Handler<FetchUser> for DbActor{
@@ -121,6 +122,21 @@ impl Handler<GetGroupExpenses> for DbActor{
     }
 }
 
+impl Handler<GetSummedGroupExpenses> for DbActor{
+    type Result = QueryResult<Vec<(String,Option<BigDecimal>)>>;
+    fn handle(&mut self, msg: GetSummedGroupExpenses, _ctx: &mut Self::Context) -> Self::Result{
+        let mut conn = self.0.get().expect("Create User: Unable to establish connection");
+        expenses.inner_join(user_group
+                .inner_join(group)
+                .inner_join(user))
+            .filter(group_name.eq(msg.group_name))
+            .group_by(username)
+            .select((username, sum(cost)))
+            .load::<(String, Option<BigDecimal>)>(&mut conn)
+    }
+}
+
+
 impl Handler<GetMyExpenses> for DbActor{
     type Result = QueryResult<Vec<(String,String,BigDecimal,i32)>>;
     fn handle(&mut self, msg: GetMyExpenses, _ctx: &mut Self::Context) -> Self::Result{
@@ -169,6 +185,16 @@ impl Handler<UpdateExpense> for DbActor{
         
         diesel::update(expenses.filter(expense_id.eq(msg.expense_id)))
             .set(new_expense)
+            .execute(&mut conn)
+    }
+}
+
+impl Handler<DeleteExpense> for DbActor{
+    type Result = QueryResult<usize>;
+    fn handle(&mut self, msg: DeleteExpense, _ctx: &mut Self::Context) -> Self::Result{
+        let mut conn = self.0.get().expect("Create User: Unable to establish connection");      
+        
+        diesel::delete(expenses.filter(expense_id.eq(msg.expense_id)))
             .execute(&mut conn)
     }
 }
