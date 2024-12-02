@@ -20,6 +20,7 @@ CREATE TABLE "user_group" (
     user_group_id SERIAL PRIMARY KEY,
     user_id INT NOT NULL,
     group_id INT NOT NULL,
+    UNIQUE(user_id,group_id),
     FOREIGN KEY (user_id) REFERENCES "user"(id) ON DELETE CASCADE,
     FOREIGN KEY (group_id) REFERENCES "group"(id) ON DELETE CASCADE
 );

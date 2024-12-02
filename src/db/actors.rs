@@ -8,7 +8,7 @@ use super::schema::user_group::{group_id as group_in_group_id, user_id as user_i
 use super::utils::DbActor;
 use super::insertables::{NewExpense, NewGroup, NewUser, NewUserGroup};
 use super::schema::user::{dsl::{user,first_name,last_name,email,password,username}, id as user_id};
-use super::messages::{CreateGroup, CreateUser, DeleteExpense, FetchUser, GetBelongingGroupsName, GetGroupExpenses, GetJoinCode, GetMyExpenses, GetMyGroupName, GetSummedGroupExpenses, GetUserId, InsertExpense, IsUserGroupOwner, JoinGroup, LogIn, UpdateExpense};
+use super::messages::{CreateGroup, CreateUser, DeleteExpense, DeleteGroup, FetchUser, GetBelongingGroupsName, GetGroupExpenses, GetJoinCode, GetMyExpenses, GetMyGroupName, GetSummedGroupExpenses, GetUserId, InsertExpense, IsUserGroupOwner, JoinGroup, LogIn, PutNewName, UpdateExpense};
 use actix::Handler;
 use bigdecimal::BigDecimal;
 use diesel::dsl::sum;
@@ -143,6 +143,30 @@ impl Handler<JoinGroup> for DbActor{
         diesel::insert_into(user_group).values(new_user_group).execute(&mut conn)
     }
 }
+
+impl Handler<DeleteGroup> for DbActor{
+    type Result = QueryResult<usize>;
+
+    fn handle(&mut self, msg: DeleteGroup, _ctx: &mut Self::Context) -> Self::Result{
+        let mut conn = self.0.get().expect("Create User: Unable to establish connection");
+        let grop_id: i32 = group.filter(group_name.eq(msg.group_name)).select(group_id).first(&mut conn).expect("Insert Expense: couldn't find group");
+        
+        diesel::delete(group.filter(group_id.eq(grop_id))).execute(&mut conn)
+    }
+}
+
+impl Handler<PutNewName> for DbActor{
+    type Result = QueryResult<usize>;
+
+    fn handle(&mut self, msg: PutNewName, _ctx: &mut Self::Context) -> Self::Result{
+        let mut conn = self.0.get().expect("Create User: Unable to establish connection");
+        let grop_id: i32 = group.filter(group_name.eq(msg.old_name)).select(group_id).first(&mut conn).expect("Insert Expense: couldn't find group");
+        
+        diesel::update(group.filter(group_id.eq(grop_id))).set(group_name.eq(msg.new_name)).execute(&mut conn)
+    }
+}
+
+
 
 // Expenses
 

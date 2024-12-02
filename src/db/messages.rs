@@ -59,6 +59,19 @@ pub struct JoinGroup{
     pub user_id: i32,
 }
 
+#[derive(Message,Deserialize)]
+#[rtype(result= "QueryResult<usize>")]
+pub struct DeleteGroup{
+    pub group_name: String,
+}
+
+#[derive(Message,Deserialize)]
+#[rtype(result= "QueryResult<usize>")]
+pub struct PutNewName{
+    pub old_name: String,
+    pub new_name: String,
+}
+
 #[derive(Message, Deserialize, Clone)]
 #[rtype(result = "QueryResult<bool>")]
 pub struct LogIn{

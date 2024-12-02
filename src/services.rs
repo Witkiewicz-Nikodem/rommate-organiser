@@ -3,7 +3,7 @@ use actix_web::{
     delete, get, post, put, web::{self, Data, Json}, HttpResponse, Responder
 };
 use crate::{
-    db::messages::{CreateGroup, DeleteExpense, GetBelongingGroupsName, GetGroupExpenses, GetJoinCode, GetMyExpenses, GetMyGroupName, GetSummedGroupExpenses, GetUserId, InsertExpense, IsUserGroupOwner, JoinGroup, UpdateExpense}, io_api_schemes::{CreateGroupBody, CreateUserBody, InsertExpenseBody, JoinGroupBody, UpdateExpenseBody}, messages::{CreateUser, FetchUser, LogIn}, session, AppState, DbActor
+    db::messages::{CreateGroup, DeleteExpense, DeleteGroup, GetBelongingGroupsName, GetGroupExpenses, GetJoinCode, GetMyExpenses, GetMyGroupName, GetSummedGroupExpenses, GetUserId, InsertExpense, IsUserGroupOwner, JoinGroup, PutNewName, UpdateExpense}, io_api_schemes::{CreateGroupBody, CreateUserBody, InsertExpenseBody, JoinGroupBody, UpdateExpenseBody}, messages::{CreateUser, FetchUser, LogIn}, session, AppState, DbActor
 };
 use actix::Addr;
 use log::info;
@@ -64,7 +64,7 @@ pub async fn get_join_code(state: Data<AppState>, session: Session, group_name: 
         Ok(true) => {
             match db.send(GetJoinCode{group_name: group_name.to_string()}).await{
                 Ok(Ok(response)) => HttpResponse::Ok().json(response),
-                Ok(Err(_)) => HttpResponse::NotFound().json("No users found"),
+                Ok(Err(_)) => HttpResponse::NotFound().json("No code for provided data"),
                 _ => HttpResponse::InternalServerError().json("Unable to retrieve users"),
             }
         }
@@ -78,9 +78,9 @@ pub async fn post_join_group(state: Data<AppState>, session: Session, body: Json
     let db: Addr<DbActor> = state.as_ref().db.clone();
     match session::get_id(&session){
         Some(user_id) => {
-            match db.send(JoinGroup{code: body.code, user_id: user_id}).await{
+            match db.send(JoinGroup{code: body.code, user_id}).await{
                 Ok(Ok(response)) => HttpResponse::Ok().json(response),
-                Ok(Err(_)) => HttpResponse::NotFound().json("No users found"),
+                Ok(Err(_)) => HttpResponse::BadRequest().json("Provided Wrong Data"),
                 _ => HttpResponse::InternalServerError().json("Unable to retrieve users"),
             }
         }
@@ -88,6 +88,43 @@ pub async fn post_join_group(state: Data<AppState>, session: Session, body: Json
     }
 }
 
+#[delete("/group/{group_name}")]
+pub async fn delete_group(state: Data<AppState>, session: Session, group_name: web::Path<String>) -> impl Responder{
+    let db: Addr<DbActor> = state.as_ref().db.clone();
+
+    let user_id = match session::get_id(&session){
+        Some(result) => result,
+        None => return HttpResponse::InternalServerError().json("u must be logged in to get yours groups")
+    };
+
+    match db.send(IsUserGroupOwner{group_name: group_name.to_string(), usr_id: user_id}).await{
+        Ok(true) => {
+            match db.send(DeleteGroup{group_name: group_name.to_string()}).await{
+                Ok(Ok(response)) => HttpResponse::Ok().json(response),
+                Ok(Err(_)) => HttpResponse::NotFound().json("No group for provided name"),
+                _ => HttpResponse::InternalServerError().json("Unable to retrieve group"),
+            }
+        }
+        Ok(false) => HttpResponse::BadRequest().json("provided Wrong Data "),
+        Err(_) => HttpResponse::InternalServerError().json("Unable check provided data"),
+    }
+}
+
+#[put("/group")]
+pub async fn put_group(state: Data<AppState>, session: Session, body: Json<PutNewName>) -> impl Responder{
+    let db: Addr<DbActor> = state.as_ref().db.clone();
+
+    match session::is_logged_in(&session){
+        true => {
+            match db.send(PutNewName{old_name: body.old_name.clone(), new_name: body.new_name.clone()}).await{
+                Ok(Ok(response)) => HttpResponse::Ok().json(response),
+                Ok(Err(_)) => HttpResponse::NotFound().json("No group for provided name"),
+                _ => HttpResponse::InternalServerError().json("Unable to retrieve group"),
+            }
+        },
+        false => return HttpResponse::InternalServerError().json("u must be logged in to get yours groups")
+    }
+}
 
 #[post("/user")]
 pub async fn create_user(state: Data<AppState>, body: Json<CreateUserBody>) -> impl Responder{
