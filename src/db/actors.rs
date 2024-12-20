@@ -5,14 +5,16 @@ use super::schema::user_group::dsl::{user_group};
 use super::schema::group::dsl::group;
 use super::schema::group::{id as group_id, join_code, name as group_name, owner};
 use super::schema::user_group::{group_id as group_in_group_id, user_id as user_in_group_id, user_group_id};
+use super::schema::user::{dsl::{user,first_name,last_name,email,password,username}, id as user_id};
+use super::schema::HTML::{dsl::{HTML,name as HTML_name, element}};
 use super::utils::DbActor;
 use super::insertables::{NewExpense, NewGroup, NewUser, NewUserGroup};
-use super::schema::user::{dsl::{user,first_name,last_name,email,password,username}, id as user_id};
-use super::messages::{CreateGroup, CreateUser, DeleteExpense, DeleteGroup, FetchUser, GetBelongingGroupsName, GetGroupExpenses, GetJoinCode, GetMyExpenses, GetMyGroupName, GetSummedGroupExpenses, GetUserId, InsertExpense, IsUserGroupOwner, JoinGroup, LogIn, PutNewName, UpdateExpense};
+use super::messages::{CreateGroup, CreateUser, DeleteExpense, DeleteGroup, FetchUser, GetBelongingGroupsName, GetGroupExpenses, GetHTML, GetJoinCode, GetMyExpenses, GetMyGroupName, GetSummedGroupExpenses, GetUserId, InsertExpense, IsUserGroupOwner, JoinGroup, LogIn, PutNewName, UpdateExpense};
 use actix::Handler;
 use bigdecimal::BigDecimal;
 use diesel::dsl::sum;
 use diesel::{self, prelude::*, dsl::exists};
+use log::info;
 use uuid::Uuid;
 
 impl Handler<FetchUser> for DbActor{
@@ -121,7 +123,7 @@ impl Handler<GetJoinCode> for DbActor{
     fn handle(&mut self, msg: GetJoinCode, _ctx: &mut Self::Context) -> Self::Result{
         let mut conn = self.0.get().expect("Create User: Unable to establish connection");
         let grop_id: i32 = group.filter(group_name.eq(msg.group_name)).select(group_id).first(&mut conn).expect("Insert Expense: couldn't find group");
-        
+        info!("grop_id: {:?}", grop_id);
         group.filter(group_id.eq(grop_id))
              .select(join_code)
              .get_result(&mut conn)
@@ -273,5 +275,19 @@ impl Handler<IsUserGroupOwner> for DbActor{
             Ok(_) => true,
             Err(_) => false,
         }
+    }
+}
+
+
+// HTML DB 
+
+impl Handler<GetHTML> for DbActor{
+    type Result = QueryResult<String>;
+    fn handle(&mut self, msg: GetHTML, _ctx: &mut Self::Context) -> Self::Result{
+        let mut conn = self.0.get().expect("Create User: Unable to establish connection");      
+        let all = HTML.select(HTML_name).get_results::<String>(&mut conn);
+
+        let alll = HTML.filter(HTML_name.eq(msg.html_object_name.clone())).select(element).first::<String>(&mut conn);
+        HTML.filter(HTML_name.eq(msg.html_object_name)).select(element).first::<String>(&mut conn)      
     }
 }

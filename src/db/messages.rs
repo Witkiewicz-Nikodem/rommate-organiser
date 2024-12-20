@@ -128,3 +128,10 @@ pub struct UpdateExpense{
 pub struct DeleteExpense{
     pub expense_id: i32
 }
+
+// HTML
+#[derive(Message)]
+#[rtype(result = "QueryResult<String>")]
+pub struct GetHTML{
+    pub html_object_name: String, 
+}

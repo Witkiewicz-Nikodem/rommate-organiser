@@ -14,6 +14,7 @@ use actix_session::{SessionMiddleware, storage::CookieSessionStore};
 use actix_web::cookie::time::Duration;
 use actix_web::cookie::{Key, SameSite};
 use dotenv::dotenv;
+use html_synthesis::assembly_page::{get_logged_in_create_group, get_logged_in_home, get_logged_in_join_group, get_logged_in_manage_owned_groups, get_logged_in_manage_owned_groups_specific, get_logged_in_my_groups, get_logged_in_my_groups_specyfic, get_logged_in_support, get_logged_out_index, get_logged_out_login, get_logged_out_register, get_logged_out_support};
 use std::env;
 use env_logger;
 
@@ -21,11 +22,13 @@ mod db;
 mod services;
 mod sessions;
 mod io_api_schemes;
+mod html_synthesis;
 
 use crate::db::messages;
 use crate::db::schema;
 use crate::db::utils;
 use crate::sessions::session;
+use crate::html_synthesis::{getters,builder,assembly_page};
 
 use utils::{get_pool, AppState, DbActor};
 use services::{create_group, create_user, delete_expense, delete_group, get_belonging_groups, get_groups_expenses, get_join_code, get_my_expenses, get_my_groups, get_summed_groups_expenses, get_users, insert_expense, log_in, log_out, post_join_group, put_group, update_expense};
@@ -34,6 +37,11 @@ use services::{create_group, create_user, delete_expense, delete_group, get_belo
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
     env_logger::init();
+    let port = env::var("PORT")
+        .ok()
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(8080);
+    let address = format!("127.0.0.1:{}", port);
 
     let db_url: String = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let pool: Pool<ConnectionManager<PgConnection>> = get_pool(&db_url);
@@ -55,6 +63,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(Cors::default()
                 .allowed_origin("http://192.168.56.1:8081") 
                 .allowed_origin("http://127.0.0.1:8080") 
+                .allowed_origin("http://localhost:8080") 
                 .allowed_methods(vec!["GET", "POST"])
                 .allowed_headers(vec![header::CONTENT_TYPE, header::SET_COOKIE])
                 .max_age(3600))  
@@ -78,9 +87,22 @@ async fn main() -> std::io::Result<()> {
             .service(actix_files::Files::new(
                 "/static",
                 Path::new("../static")
-        ))
+            
+            ))
+            .service(get_logged_out_index)
+            .service(get_logged_out_support)
+            .service(get_logged_out_register)
+            .service(get_logged_out_login)
+            .service(get_logged_in_home)
+            .service(get_logged_in_support)
+            .service(get_logged_in_my_groups)
+            .service(get_logged_in_my_groups_specyfic)
+            .service(get_logged_in_manage_owned_groups)
+            .service(get_logged_in_manage_owned_groups_specific)
+            .service(get_logged_in_join_group)
+            .service(get_logged_in_create_group)
     })
-    .bind(("127.0.0.1", 8080))?
+    .bind(address)?
     .run()
     .await
 }

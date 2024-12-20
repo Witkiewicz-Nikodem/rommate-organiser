@@ -1,6 +1,16 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
+    HTML (id) {
+        id -> Int4,
+        #[max_length = 255]
+        name -> Varchar,
+        #[max_length = 10000]
+        element -> Varchar,
+    }
+}
+
+diesel::table! {
     expenses (id) {
         id -> Int4,
         #[max_length = 255]
@@ -50,6 +60,7 @@ diesel::joinable!(user_group -> group (group_id));
 diesel::joinable!(user_group -> user (user_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
+    HTML,
     expenses,
     group,
     user,
