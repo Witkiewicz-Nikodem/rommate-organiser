@@ -63,4 +63,5 @@ INSERT INTO "HTML" (name, element) VALUES
     </section>
 </main>'),
 ('logged_in_home_scripts', 
-'<script src="/static/scripts/Auth/logOut.js"></script>');
+'<script src="/static/scripts/Auth/logOut.js"></script>
+<script src="/static/scripts/Auth/session_checker.js"></script>');

@@ -240,15 +240,26 @@ impl Handler<UpdateExpense> for DbActor{
     type Result = QueryResult<usize>;
     fn handle(&mut self, msg: UpdateExpense, _ctx: &mut Self::Context) -> Self::Result{
         let mut conn = self.0.get().expect("Create User: Unable to establish connection");      
-        let new_expense = ModUpdateExpense{
-            id: msg.expense_id,
-            name: msg.name,
-            cost: msg.cost,
-        };
+        let check = expenses.inner_join(user_group)
+                .filter(user_in_group_id.eq(msg.user_id))
+                .filter(expense_id.eq(msg.expense_id))
+                .select(expense_id)
+                .first::<i32>(&mut conn); 
         
-        diesel::update(expenses.filter(expense_id.eq(msg.expense_id)))
-            .set(new_expense)
-            .execute(&mut conn)
+        match check{
+            Ok(_) => {
+                let new_expense = ModUpdateExpense{
+                    id: msg.expense_id,
+                    name: msg.name,
+                    cost: msg.cost,
+                };
+                
+                diesel::update(expenses.filter(expense_id.eq(msg.expense_id)))
+                    .set(new_expense)
+                    .execute(&mut conn)
+            },
+            Err(e) => return Err(e),
+        }
     }
 }
 
@@ -257,8 +268,18 @@ impl Handler<DeleteExpense> for DbActor{
     fn handle(&mut self, msg: DeleteExpense, _ctx: &mut Self::Context) -> Self::Result{
         let mut conn = self.0.get().expect("Create User: Unable to establish connection");      
         
-        diesel::delete(expenses.filter(expense_id.eq(msg.expense_id)))
+        let check = expenses.inner_join(user_group)
+            .filter(user_in_group_id.eq(msg.user_id))
+            .filter(expense_id.eq(msg.expense_id))
+            .select(expense_id)
+            .first::<i32>(&mut conn); 
+    match check{
+        Ok(_) => {         
+            diesel::delete(expenses.filter(expense_id.eq(msg.expense_id)))
             .execute(&mut conn)
+        },
+        Err(e) => return Err(e),
+    }
     }
 }
 
@@ -285,9 +306,6 @@ impl Handler<GetHTML> for DbActor{
     type Result = QueryResult<String>;
     fn handle(&mut self, msg: GetHTML, _ctx: &mut Self::Context) -> Self::Result{
         let mut conn = self.0.get().expect("Create User: Unable to establish connection");      
-        let all = HTML.select(HTML_name).get_results::<String>(&mut conn);
-
-        let alll = HTML.filter(HTML_name.eq(msg.html_object_name.clone())).select(element).first::<String>(&mut conn);
         HTML.filter(HTML_name.eq(msg.html_object_name)).select(element).first::<String>(&mut conn)      
     }
 }

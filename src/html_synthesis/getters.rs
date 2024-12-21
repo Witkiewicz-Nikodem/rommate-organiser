@@ -310,13 +310,13 @@ pub async fn get_li_create_group_scripts(state: Data<AppState>) -> Result<String
     }
 }
 
-pub async fn get_li_create_group_head(state: Data<AppState>) -> Result<String,()>{
+pub async fn get_li_crud_expenses_controll(state: Data<AppState>) -> Result<String,()>{
     let db: Addr<DbActor> = state.as_ref().db.clone();
 
-    let get_footer_element = GetHTML{html_object_name: "logged_in_create_group_head".to_string()};
+    let get_footer_element = GetHTML{html_object_name: "logged_in_belonging_groups_CRUD_expenses".to_string()};
     match db.send(get_footer_element).await{
         Ok(Ok(response)) => Ok(response),
-        Ok(Err(_)) => Err(info!("no logged_in_create_group_head found")),
-        _ => Err(info!("coudln't retrieve logged_in_create_group_head from db")),
+        Ok(Err(_)) => Err(info!("no logged_in_belonging_groups_CRUD_expenses found")),
+        _ => Err(info!("coudln't retrieve logged_in_belonging_groups_CRUD_expenses from db")),
     }
 }

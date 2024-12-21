@@ -58,6 +58,7 @@ INSERT INTO "HTML" (name, element) VALUES
 <script src="/static/scripts/CRUD/delete_group.js"></script>
 <script src="/static/scripts/CRUD/update_group.js"></script>
 <script src="/static/scripts/sectionActivator.js"></script>
+<script src="/static/scripts/Auth/session_checker.js"></script>
 ')
 
 

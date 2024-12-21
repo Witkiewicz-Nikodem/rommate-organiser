@@ -35,7 +35,7 @@ pub async fn get_my_groups(state: Data<AppState>, session: Session) -> impl Resp
                 _ => HttpResponse::InternalServerError().json("Unable to retrieve users"),
             }
         }
-        None          => HttpResponse::InternalServerError().json("u must be logged in to get yours groups")
+        None          => HttpResponse::Unauthorized().json("u must be logged in to get yours groups")
     }
 }
 
@@ -50,7 +50,7 @@ pub async fn get_belonging_groups(state: Data<AppState>, session: Session) -> im
                 _ => HttpResponse::InternalServerError().json("Unable to retrieve users"),
             }
         }
-        None          => HttpResponse::InternalServerError().json("u must be logged in to get yours groups")
+        None          => HttpResponse::Unauthorized().json("u must be logged in to get yours groups")
     }
 }
 
@@ -60,7 +60,7 @@ pub async fn get_join_code(state: Data<AppState>, session: Session, group_name: 
 
     let user_id = match session::get_id(&session){
         Some(result) => result,
-        None => return HttpResponse::InternalServerError().json("u must be logged in to get yours groups")
+        None => return HttpResponse::Unauthorized().json("u must be logged in to get yours groups")
     };
 
     match db.send(IsUserGroupOwner{group_name: group_name.to_string(), usr_id: user_id}).await{
@@ -87,7 +87,7 @@ pub async fn post_join_group(state: Data<AppState>, session: Session, body: Json
                 _ => HttpResponse::InternalServerError().json("Unable to retrieve users"),
             }
         }
-        None => HttpResponse::BadRequest().json("your are not loged in"),
+        None => HttpResponse::Unauthorized().json("your are not loged in"),
     }
 }
 
@@ -97,7 +97,7 @@ pub async fn delete_group(state: Data<AppState>, session: Session, group_name: w
 
     let user_id = match session::get_id(&session){
         Some(result) => result,
-        None => return HttpResponse::InternalServerError().json("u must be logged in to get yours groups")
+        None => return HttpResponse::Unauthorized().json("u must be logged in to get yours groups")
     };
 
     match db.send(IsUserGroupOwner{group_name: group_name.to_string(), usr_id: user_id}).await{
@@ -125,7 +125,7 @@ pub async fn put_group(state: Data<AppState>, session: Session, body: Json<PutNe
                 _ => HttpResponse::InternalServerError().json("Unable to retrieve group"),
             }
         },
-        false => return HttpResponse::InternalServerError().json("u must be logged in to get yours groups")
+        false => return HttpResponse::Unauthorized().json("u must be logged in to get yours groups")
     }
 }
 
@@ -160,7 +160,7 @@ pub async fn create_group(state: Data<AppState>, body: Json<CreateGroupBody>, se
                 err => {info!("create group error: {:?}",err);HttpResponse::InternalServerError().finish()},
             }
         }
-        None          => HttpResponse::InternalServerError().json("u must be logged in to create Group")
+        None          => HttpResponse::Unauthorized().json("u must be logged in to create Group")
     }
 }
 
@@ -196,7 +196,7 @@ pub async fn log_out(session: Session) -> impl Responder{
                 Err(_error) => HttpResponse::InternalServerError().json("Failed to Log in"),
             }
         }
-        false => HttpResponse::BadRequest().json("your are not loged in"),
+        false => HttpResponse::Unauthorized().json("your are not loged in"),
     }
 }
 
@@ -212,7 +212,7 @@ pub async fn get_groups_expenses(state: Data<AppState>, session: Session, group_
                 _ => HttpResponse::InternalServerError().json("Unable to retrieve users"),
             }
         }
-        false => HttpResponse::InternalServerError().json("u must be logged in to get yours groups")
+        false => HttpResponse::Unauthorized().json("u must be logged in to get yours groups")
     }
 }
 
@@ -228,7 +228,7 @@ pub async fn get_summed_groups_expenses(state: Data<AppState>, session: Session,
                 _ => HttpResponse::InternalServerError().json("Unable to retrieve users"),
             }
         }
-        false => HttpResponse::InternalServerError().json("u must be logged in to get yours groups")
+        false => HttpResponse::Unauthorized().json("u must be logged in to get yours groups")
     }
 }
 
@@ -244,7 +244,7 @@ pub async fn get_my_expenses(state: Data<AppState>, session: Session) -> impl Re
                 _ => HttpResponse::InternalServerError().json("Unable to retrieve users"),
             }
         }
-        None => HttpResponse::InternalServerError().json("u must be logged in to get yours groups")
+        None => HttpResponse::Unauthorized().json("u must be logged in to get yours groups")
     }
 }
 
@@ -264,26 +264,27 @@ pub async fn insert_expense(state: Data<AppState>, session: Session, body: Json<
                 _ => HttpResponse::InternalServerError().json("Unable to retrieve users"),
             }
         }
-        None => HttpResponse::InternalServerError().json("u must be logged in to get yours groups")
+        None => HttpResponse::Unauthorized().json("u must be logged in to get yours groups")
     }
 }
 
 #[put("/expense")]
 pub async fn update_expense(state: Data<AppState>, session: Session, body: Json<UpdateExpenseBody>) -> impl Responder{
     let db: Addr<DbActor> = state.as_ref().db.clone();
-    match session::is_logged_in(&session) {
-        true =>{
+    match session::get_id(&session) {
+        Some(user_id) =>{
             match db.send(UpdateExpense{
+                    user_id,
                     name: body.name.clone(),
                     cost: body.cost.clone(),
                     expense_id: body.expense_id.clone()
                     }).await{
                 Ok(Ok(response)) => HttpResponse::Ok().json(response),
-                Ok(Err(_)) => HttpResponse::NotFound().json("No users found"),
+                Ok(Err(e)) => HttpResponse::BadRequest().json(format!("{:?}",e)),
                 _ => HttpResponse::InternalServerError().json("Unable to retrieve users"),
             }
         }
-        false => HttpResponse::InternalServerError().json("u must be logged in to get yours groups")
+        None => HttpResponse::Unauthorized().json("u must be logged in to get yours groups")
     }
 }
 
@@ -294,14 +295,14 @@ pub async fn delete_expense(state: Data<AppState>, session: Session, expense_id:
         Ok(value) => value,
         Err(err) => return HttpResponse::InternalServerError().json(format!("Unable to parse expense_id. err: {:?}", err))
     };
-    match session::is_logged_in(&session) {
-        true =>{
-            match db.send(DeleteExpense{expense_id: exp_id}).await{
+    match session::get_id(&session) {
+        Some(user_id) =>{
+            match db.send(DeleteExpense{user_id, expense_id: exp_id}).await{
                 Ok(Ok(response)) => HttpResponse::Ok().json(response),
-                Ok(Err(_)) => HttpResponse::NotFound().json("No users found"),
+                Ok(Err(e)) => HttpResponse::BadRequest().json(format!("{:?}",e)),
                 _ => HttpResponse::InternalServerError().json("Unable to retrieve users"),
             }
         }
-        false => HttpResponse::InternalServerError().json("u must be logged in to get yours groups")
+        None => HttpResponse::Unauthorized().json("u must be logged in to get yours groups")
     }
 }

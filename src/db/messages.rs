@@ -118,6 +118,7 @@ pub struct InsertExpense{
 #[derive(Message)]
 #[rtype(result= "QueryResult<(usize)>")]
 pub struct UpdateExpense{
+    pub user_id: i32,
     pub name: String,
     pub cost: BigDecimal,
     pub expense_id: i32
@@ -126,6 +127,7 @@ pub struct UpdateExpense{
 #[derive(Message)]
 #[rtype(result= "QueryResult<(usize)>")]
 pub struct DeleteExpense{
+    pub user_id: i32,
     pub expense_id: i32
 }
 

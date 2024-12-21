@@ -53,7 +53,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(
                 // create cookie based session middleware
                 SessionMiddleware::builder(CookieSessionStore::default(), Key::from(&[0; 64]))
-                    .session_lifecycle(PersistentSession::default().session_ttl(Duration::minutes(30)))
+                    .session_lifecycle(PersistentSession::default().session_ttl(Duration::minutes(15)))
                     .cookie_secure(false)
                     .cookie_http_only(false)
                     .cookie_same_site(SameSite::Lax)

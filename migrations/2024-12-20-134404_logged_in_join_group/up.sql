@@ -18,6 +18,7 @@ INSERT INTO "HTML" (name, element) VALUES
 ('logged_in_join_group_scripts',
 '<script src="/static/scripts/Auth/logOut.js"></script>
 <script src="/static/scripts/CRUD/join_group.js"></script>
+<script src="/static/scripts/Auth/session_checker.js"></script>
 '),
 ('logged_in_join_group_head',
 '<head>

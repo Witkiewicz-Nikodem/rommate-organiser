@@ -108,7 +108,8 @@ INSERT INTO "HTML" (name, element) VALUES
   <link rel="stylesheet" href="/static/css/footer.css">
   <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
 </head>'),
-('logged_out_register_script','<script type="module" src="/static/scripts/Auth/RegisterForm.js"></script>'),
+('logged_out_register_script',
+'<script type="module" src="/static/scripts/Auth/RegisterForm.js"></script>'),
 ('logged_out_login_body_individual','<main>
     <section id="login" class="authFromContent">
     <h2>Log In</h2>
