@@ -1,0 +1,39 @@
+.Managebutton {
+    margin-top: 20px;
+    border: 5px solid #FFD700; /* Złota ramka */
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: color 0.3s ease, background-color 0.3s;
+    text-decoration: none; 
+    font-size: 1rem;
+    border-radius: 20px;
+    background-color: #228B22; /* Jaśniejsza zieleń, dobrze kontrastująca */
+    width: 100%;
+    text-align: left; 
+}
+
+#copyCode {
+    color: #333; /* Ciemny tekst */
+}
+
+#copyCode:hover {
+    background-color: #00b33c; /* Zielony kolor tła przy hover */
+    color: #fff;
+}
+
+#changeGroupName {
+    color: #fff;
+}
+
+#changeGroupName:hover {
+    background-color: #00b33c; /* Zielony kolor tła przy hover */
+}
+
+#deleteGroup {
+    color: #fff;
+    margin-bottom: 20px;
+}
+
+#deleteGroup:hover {
+    background-color: #b30000; /* Ciemnoczerwony, pasujący do całej stylistyki */
+}

@@ -1,0 +1,19 @@
+services:
+  app:
+    build:
+      context: .  # Ścieżka do katalogu z Dockerfile dla aplikacji
+    environment:
+      - RUST_LOG=debug
+      - DATABASE_URL=postgresql://postgres:llDuwAHxgyvxuDeGNhuedraAdjLTdCdJ@postgres.railway.internal:5432/railway
+    #  - DATABASE_URL=postgresql://postgres:llDuwAHxgyvxuDeGNhuedraAdjLTdCdJ@autorack.proxy.rlwy.net:55059/railway
+    networks:
+      - app-network
+    ports:
+      - 8080:8080
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  pg_data:

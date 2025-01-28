@@ -1,0 +1,24 @@
+footer {
+  background-color: #f5f5f5; /* Jasne białe tło */
+  color: #006400; /* Ciemnozielony tekst */
+  text-align: center;
+  padding: 20px;
+  border-top: 2px solid #008000; /* Zielony akcent */
+  margin-top: 20px;
+}
+
+footer a {
+  color: #008000; /* Zielone linki */
+  text-decoration: none;
+  font-weight: bold;
+}
+
+footer a:hover {
+  text-decoration: underline; /* Podkreślenie na hover dla linków */
+  color: #004d00; /* Ciemniejszy zielony na hover */
+}
+
+footer p {
+  margin: 10px 0;
+  color: #333333; /* Ciemnoszary tekst */
+}

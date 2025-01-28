@@ -64,7 +64,8 @@ async fn main() -> std::io::Result<()> {
                 .allowed_origin("http://192.168.56.1:8081") 
                 .allowed_origin("http://127.0.0.1:8080") 
                 .allowed_origin("http://localhost:8080") 
-                .allowed_methods(vec!["GET", "POST"])
+                .allowed_origin("https://rust-app-production.up.railway.app")
+                .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
                 .allowed_headers(vec![header::CONTENT_TYPE, header::SET_COOKIE])
                 .max_age(3600))  
             .service(get_users)
@@ -86,7 +87,7 @@ async fn main() -> std::io::Result<()> {
             .service(put_group)
             .service(actix_files::Files::new(
                 "/static",
-                Path::new("../static")
+                Path::new("./static")
             
             ))
             .service(get_logged_out_index)
@@ -102,7 +103,7 @@ async fn main() -> std::io::Result<()> {
             .service(get_logged_in_join_group)
             .service(get_logged_in_create_group)
     })
-    .bind(address)?
+    .bind("0.0.0.0:8080")?
     .run()
     .await
 }

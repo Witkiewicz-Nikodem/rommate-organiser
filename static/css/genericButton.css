@@ -1,0 +1,18 @@
+.genericButton {
+  background-color: #008000; 
+  color: #ffffff; 
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  text-decoration: none; 
+  font-size: 1rem;
+  border-radius: 8px; 
+  display: inline-block;
+  line-height: normal;
+  vertical-align: middle;
+}
+
+.genericButton:hover {
+  background-color: #00b33c; 
+}

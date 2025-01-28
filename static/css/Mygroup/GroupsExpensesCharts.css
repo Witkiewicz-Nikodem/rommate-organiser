@@ -1,0 +1,23 @@
+#charts {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap; /* Pozwala elementom zawijać się na nową linię */
+}
+
+#barChart, 
+#doughnutChart {
+    flex: 1;
+    min-width: 300px; /* Minimalna szerokość dla wykresu */
+}
+
+/* Styl dla urządzeń o szerokości mniejszej niż 768px */
+@media (max-width: 768px) {
+    #charts {
+        flex-direction: column; /* Ustaw wykresy w kolumnie */
+    }
+
+    #barChart, 
+    #doughnutChart {
+        width: 100%; /* Wykresy zajmują całą szerokość rodzica */
+    }
+}

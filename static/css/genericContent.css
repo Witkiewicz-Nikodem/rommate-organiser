@@ -1,0 +1,51 @@
+/* Stylizacja dla sekcji.genericContent */
+.genericContent {
+    background-color: #f5f5f5; /* Jasne białe tło */
+    padding: 25px;
+    border: 1px solid #cccccc; /* Jasnoszare obramowanie */
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 128, 0, 0.2); /* Zielony delikatny cień */
+    text-align: left;
+}
+
+/* Nagłówki w sekcji.genericContent */
+.genericContent h2 {
+    color: #006400; /* Ciemnozielony akcent */
+    font-size: 2rem;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+/* Tekst paragrafów w sekcji.genericContent */
+.genericContent p {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    margin-bottom: 15px;
+    color: #333333; /* Ciemnoszary tekst */
+}
+
+/* Ostatni paragraf w sekcji.genericContent */
+.genericContent p:last-child {
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #008000; /* Zielony akcent */
+    margin-top: 20px;
+}
+
+/* Lista w sekcji.genericContent */
+.genericContent ul {
+    list-style: none;
+    margin: 20px 0;
+    padding: 0;
+}
+
+.genericContent ul li {
+    background-color: #e0ffe0; /* Jasnozielone tło */
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    border-left: 5px solid #008000; /* Zielony akcent */
+    color: #006400; /* Ciemnozielony tekst */
+    font-weight: bold;
+    box-shadow: 0 2px 5px rgba(0, 128, 0, 0.1); /* Zielony delikatny cień */
+}

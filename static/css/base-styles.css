@@ -1,0 +1,50 @@
+/* Ogólne ustawienia stylów */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+header {
+  background-color: #006400; /* Ciemna zieleń */
+  color: #ffffff; /* Biały tekst */
+  padding: 20px 20px;
+  text-align: center;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+/* Menu */
+.menu {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0 0;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+main {
+  padding: 20px;
+}
+
+h2 {
+  color: #006400; /* Ciemna zieleń dla tytułów */
+}
+
+p {
+  color: #333333; /* Ciemnoszary tekst dla lepszej czytelności */
+}
+
+/* Stylizacja dla klas logowania */
+.logged.out {
+  display: none;
+}
+
+.logged.in {
+  display: block;
+}

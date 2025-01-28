@@ -1,0 +1,76 @@
+/* Stylizacja sekcji rejestracji */
+.authFromContent {
+  background-color: #f5f5f5; /* Jasne białe tło */
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 128, 0, 0.3); /* Zielony cień dookoła sekcji */
+  max-width: 600px; /* Szerokość sekcji */
+  margin: 0 auto; /* Wyśrodkowanie sekcji */
+}
+
+.authFromContent h2, .authFromContent p {
+  color: #006400; /* Ciemnozielone napisy */
+  text-align: center;
+}
+
+.authFromContent h2 {
+  font-size: 2rem;
+  margin-bottom: 20px;
+}
+
+.authFromContent p {
+  font-size: 1rem;
+  margin-bottom: 20px;
+}
+
+/* Stylizacja formularza */
+.authForm {
+  background-color: transparent; /* Usunięcie tła formularza */
+  padding: 0; /* Usunięcie dodatkowego paddingu */
+  box-shadow: none; /* Usunięcie cienia formularza */
+  margin: 0; /* Usunięcie marginesu */
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.form-group label {
+  font-size: 1rem;
+  color: #006400; /* Ciemnozielone napisy w etykietach */
+}
+
+.form-group input {
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #cccccc; /* Jasnoszare obramowanie */
+  background-color: #ffffff; /* Białe tło */
+  color: #006400; /* Ciemnozielony tekst */
+  border-radius: 5px;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.form-group input:focus {
+  border-color: #008000; /* Zielony kolor przy focus */
+}
+
+/* Stylizacja przycisku */
+.authForm button {
+  width: 100%; /* Ustawienie szerokości przycisku na 100% */
+  padding: 15px;
+  font-size: 1rem;
+  background-color: #008000; /* Zielone tło */
+  color: white; /* Biały tekst */
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 15px;
+}
+
+.authForm button:hover {
+  background-color: #006400; /* Ciemniejszy zielony na hover */
+}

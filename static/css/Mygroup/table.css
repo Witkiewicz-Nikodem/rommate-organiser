@@ -1,0 +1,26 @@
+#table table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background-color: #f0f8f0; /* Jasnozielone tło tabeli */
+  color: #333; /* Ciemnozielony tekst dla lepszej czytelności */
+  font-family: Arial, sans-serif;
+}
+
+#table table th,
+#table table td {
+  padding: 12px;
+  text-align: left;
+  border: 1px solid #66b266; /* Zielona ramka */
+}
+
+#table table th {
+  background-color: #006400; /* Zielone tło dla nagłówków */
+  color: #fff; /* Biały tekst */
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+#table table tr:nth-child(even) {
+  background-color: #b3e0b3; /* Jasnozielone tło dla parzystych wierszy */
+}

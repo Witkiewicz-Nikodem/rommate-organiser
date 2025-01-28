@@ -1,0 +1,38 @@
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #ffffff; /* Białe tło */
+    min-width: 200px;
+    box-shadow: 0px 8px 16px rgba(0, 128, 0, 0.3); /* Zielony cień */
+    z-index: 1;
+    border-radius: 5px; /* Zaokrąglone rogi */
+}
+
+/* Elementy wewnątrz rozwijanego menu */
+.dropdown-content a {
+    background-color: #f0f0f0; /* Jasnoszare tło */
+    min-width: 200px;
+    border-radius: 0px;
+    color: #006400; /* Ciemnozielony tekst */
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    border-bottom: 1px solid #bfbfbf; /* Jasnoszare oddzielenie opcji */
+}
+
+/* Zmiana koloru najechanych opcji */
+.dropdown-content a:hover {
+    background-color: #008000; /* Zielony akcent */
+    color: #ffffff; /* Biały tekst na hover */
+}
+
+/* Wyświetlenie menu po najechaniu */
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+/* Opcjonalne: zmiana stylu przycisku po najechaniu */
+.dropdown:hover .dropdown-btn {
+    background-color: #008000; /* Zielony przycisk */
+    color: #ffffff; /* Zmiana koloru tekstu na biały */
+}

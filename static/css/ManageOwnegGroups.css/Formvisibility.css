@@ -1,0 +1,9 @@
+.Form {
+    display: none;
+    margin-top: 20px;
+  }
+  
+.Form.active {
+  display: block;
+}
+
