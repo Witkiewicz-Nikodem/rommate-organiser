@@ -59,9 +59,6 @@ INSERT INTO "HTML" (name, element) VALUES
   <p>Provide details</p>
   <form class="authForm" id="add_expense_form">
     <div class="form-group">
-      <label for="group_name">Group Name</label>
-      <input type="text" id="groupp_name" name="group_name" required>
-
       <label for="expense_name">Expense Name</label>
       <input type="text" id="expense_name" name="name" required>
 

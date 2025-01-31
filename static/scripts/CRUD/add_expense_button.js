@@ -5,7 +5,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const formData = new FormData(form);
         const data = Object.fromEntries(formData.entries());
-        console.log(JSON.stringify(data));
+
+        const pathSegments = window.location.pathname.split("/"); 
+        const lastSegment = pathSegments.filter(segment => segment !== "").pop(); 
+        data.group_name = decodeURIComponent(lastSegment);
+
         try{
             const response = await fetch(
                 'https://rust-app-production.up.railway.app/expense',{

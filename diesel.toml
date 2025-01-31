@@ -6,4 +6,4 @@ file = "src/db/schema.rs"
 custom_type_derives = ["diesel::query_builder::QueryId", "Clone"]
 
 [migrations_directory]
-dir = "D:\\studia\\magister\\sem2\\systemy_webowe\\apka\\backend\\migrations"
+dir = "D:\\studia\\magister\\sem2\\systemy_webowe\\heroku\\roommate-organiser\\migrations"

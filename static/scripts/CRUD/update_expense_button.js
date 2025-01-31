@@ -8,7 +8,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const expenseId = parseInt(data.expense_id, 10);
         data.expense_id = expenseId;
 
-        console.log(JSON.stringify(data));
+        const pathSegments = window.location.pathname.split("/"); 
+        const lastSegment = pathSegments.filter(segment => segment !== "").pop(); 
+        data.group_name = decodeURIComponent(lastSegment);
 
         try{
             const response = await fetch(
